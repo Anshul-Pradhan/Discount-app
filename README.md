@@ -3,6 +3,9 @@
 ## Overview  
 This project implements a **promo code input system** on the cart page, allowing customers to apply and remove discount codes.  
 
+Store Password: test.
+Testing Promo Code: Save 10%.
+
 The project went through two stages:  
 1. **Static JSON-based setup** → Initial version where discount codes and their rules were hardcoded in a JSON structure.  
 2. **Shopify Admin-based setup** → Final version where discounts were created directly in Shopify Admin and validated dynamically when customers enter them.  
