@@ -3,8 +3,6 @@ import { extension, Banner, Link } from '@shopify/ui-extensions/checkout';
 export default extension('purchase.checkout.block.render', (root, api) => {
   const { discountCodes, applyDiscountCodeChange, attributes, applyAttributeChange } = api;
 
-  // Set to TRUE to always remove any discount codes as soon as checkout loads.
-  // Set to FALSE to only auto-remove when checkout attribute rm_discount_all === "1"
   const ALWAYS_REMOVE_ON_CHECKOUT = false;
 
   const info = (text) => root.createComponent(Banner, { status: 'info' }, text);
@@ -19,7 +17,6 @@ export default extension('purchase.checkout.block.render', (root, api) => {
     } catch {}
   }
 
-  // Strong remover: replace with [], then remove one-by-one; retry until none remain
   async function removeAllCodesStrong(timeoutMs = 5000) {
     const deadline = Date.now() + timeoutMs;
     let lastCount = -1;
@@ -28,20 +25,16 @@ export default extension('purchase.checkout.block.render', (root, api) => {
       const codesNow = (discountCodes?.current || []).map(c => c.code);
       if (!codesNow.length) return true;
 
-      // 1) Replace all with empty list (best-effort)
       try {
         await applyDiscountCodeChange({ type: 'replaceDiscountCodes', codes: [] });
       } catch {}
 
-      // 2) Remove any stragglers (idempotent)
       for (const code of (discountCodes?.current || []).map(c => c.code)) {
         try {
           const res = await applyDiscountCodeChange({ type: 'removeDiscountCode', code });
-          // ignore res errors; keep going
         } catch {}
       }
 
-      // 3) Let state settle, then re-check
       await delay(150);
       const nowCount = (discountCodes?.current || []).length;
       if (nowCount === 0) return true;
@@ -62,7 +55,6 @@ export default extension('purchase.checkout.block.render', (root, api) => {
       await clearFlag();
       root.removeChildren();
       if (!ok) {
-        // If a discount still shows with no codes listed, it’s likely an automatic discount.
         root.appendChild(warn('Tried to remove discount code(s). If a discount still shows with no code listed, it is likely an automatic discount configured in Admin.'));
       }
       render();
